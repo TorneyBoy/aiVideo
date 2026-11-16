@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>aiVideo · 视频复刻工作台</title><link rel="stylesheet" href="./style.css"><script type="module" src="./app.js"></script></head>
+<body>
+  <aside class="sidebar">
+    <a class="brand" href="./" aria-label="aiVideo 首页"><span class="brand-icon">a<span>i</span></span><strong>aiVideo</strong></a>
+    <div class="workspace-label">创作空间 <span>工作区</span></div>
+    <a class="nav active" href="#workspace"><span>◈</span> 视频复刻 <span class="nav-arrow">↗</span></a>
+    <a class="nav" href="#voices"><span>♫</span> 我的音色</a>
+    <a class="nav" href="#history"><span>▤</span> 我的作品</a>
+    <div class="sidebar-bottom"><span class="live-dot"></span> 项目工作空间<p>素材与成片保存在项目工作空间。生成时，素材会发送至配置的模型服务。</p><p>由 Hypit 驱动 · © 2026 Hypit.AI</p></div>
+  </aside>
+  <main>
+    <header><div class="breadcrumb">工作空间 <span>/</span> 视频复刻</div><span class="version">PREVIEW 0.1</span></header>
+    <section id="workspace" class="page">
+      <div class="page-heading"><div><div class="eyebrow">REFERENCE → YOUR STORY</div><h1>好创意，换成你的主角。</h1><p>上传参考视频，替换人物或商品，再配上你的声音。</p></div><div class="system-status" id="system-status">正在检查服务配置…</div></div>
+      <div class="workbench">
+        <form id="create-form" class="input-panel">
+          <div class="panel-title"><h2>创建复刻</h2><span>01 — 素材</span></div>
+          <fieldset class="mode-tabs"><legend class="sr-only">替换类型</legend><label><input type="radio" name="mode" value="presenter" checked><span>人物替换</span></label><label><input type="radio" name="mode" value="product"><span>商品替换</span></label></fieldset>
+          <div class="field-label"><span>参考视频</span><span class="required">必填</span></div>
+          <label class="dropzone video-drop" data-drop="reference"><input id="reference" name="reference" type="file" accept="video/mp4,video/quicktime,video/webm,.mkv" required><span class="upload-symbol">↥</span><strong id="reference-name">拖入你想复刻的视频</strong><span>或点击选择 · MP4 / MOV / WebM · 最长 3 分钟</span></label>
+          <div class="field-label"><span id="subject-label">你的模特照片</span><span class="required">必填</span></div>
+          <label class="dropzone subject-drop" data-drop="subject"><input id="subject" name="subject" type="file" accept="image/png,image/jpeg,image/webp" required><img id="subject-preview" alt="主体素材预览" hidden><span class="subject-copy"><strong id="subject-name">上传清晰的模特正面照</strong><span>JPG / PNG / WebP</span></span><span class="plus">＋</span></label>
+          <p class="hint">当前只传一张主体图。转身、背面和遮挡处由模型补全，不能保证与真实主体一致；多角度素材入口尚未接入。</p>
+          <div class="voice-heading"><span class="field-label">声音替换</span><label class="switch"><input id="clone-voice" type="checkbox" checked><span>使用已确定音色</span></label></div>
+          <div id="voice-section"><label class="field-label" for="voice-profile">选择目标音色</label><select id="voice-profile" name="voiceProfileId" required><option value="">请先在“我的音色”中试听并确定音色</option></select><label class="field-label" for="voice-mode">声音处理方式</label><select id="voice-mode" name="voiceMode" required><option value="">请选择处理方式</option><option value="synthesis">豆包配音：原台词重新合成，语气会变化</option><option id="conversion-option" value="conversion" disabled>音色转换 VC：尽量保留原表达（需配置服务）</option></select><a class="voice-library-link" href="#voices">管理音色与多轮试听 ↗</a></div>
+          <p class="hint" id="voice-hint">选择后自动识别台词并用目标音色配音，不重新克隆；会重新生成语气，不保证保留原音调。合成用量按服务计费。</p>
+          <details class="asset-options"><summary>肖像素材设置（按需）</summary><p>含真人面孔的素材需符合火山的肖像接入条件；已注册的素材可填写资产 ID。</p><label>模特／主体资产 ID<input name="subjectAssetUri" type="text" placeholder="asset://…" autocomplete="off"></label><label>参考视频资产 ID<input name="referenceAssetUri" type="text" placeholder="asset://…（对应本次 4–15 秒视频）" autocomplete="off"></label></details>
+          <button class="primary-button" id="submit-button" type="submit">开始复刻 <span>↗</span></button>
+          <p class="form-note">你可以使用已获授权的参考视频、肖像和声音素材。</p>
+          <p id="form-error" class="error" role="alert" hidden></p>
+        </form>
+        <section class="preview-panel" aria-labelledby="preview-title">
+          <div class="panel-title"><h2 id="preview-title">创作预览</h2><span id="preview-badge">等待素材</span></div>
+          <div class="preview-stage" id="preview-stage"><div id="empty-preview"><div class="film-frame"><span>▶</span><i></i><i></i><i></i></div><h3>从一条好视频开始</h3><p>选择参考视频后，在这里预览。<br>完成的复刻视频也会出现在这里。</p></div><video id="video-preview" controls playsinline hidden></video></div>
+          <div class="pipeline"><div class="pipeline-title"><span class="live-dot"></span><strong id="job-message" aria-live="polite">准备开始你的第一次复刻</strong></div><ol id="pipeline-steps"><li data-step="analyzing"><span>01</span>解析分镜</li><li data-step="voice"><span>02</span>声音替换</li><li data-step="generating"><span>03</span>画面替换</li><li data-step="complete"><span>04</span>成片导出</li></ol><div class="job-actions"><button id="retry-button" class="secondary-button" hidden>继续处理</button><a id="download-button" class="secondary-button" hidden>下载成片 ↓</a></div><details id="job-details" hidden><summary>查看处理记录</summary><pre id="job-logs"></pre></details></div>
+          <section id="voice-confirmation" class="voice-confirmation" aria-labelledby="voice-confirm-title" hidden>
+            <h3 id="voice-confirm-title">确认目标音色</h3>
+            <p id="voice-confirm-description"></p>
+            <audio id="confirmation-audio" controls preload="none" hidden></audio>
+            <p class="voice-fee-note">新后付费音色首次正式合成可能触发整笔音色槽位费，另有合成用量费。金额以豆包控制台为准。<a href="https://docs.volcengine.com/docs/doubao-voice/billing-instructions?lang=zh" target="_blank" rel="noopener noreferrer">查看计费说明 ↗</a></p>
+            <label class="voice-consent-label"><input id="voice-confirm-checkbox" type="checkbox"><span id="voice-confirm-label"></span></label>
+            <button id="voice-confirm-button" class="primary-button" type="button" disabled>确认后继续</button>
+            <p class="voice-confirm-later">暂不确认可以关闭页面，任务会保留在此；“继续处理”不会代替确认。</p>
+          </section>
+          <section id="camera-gallery" class="camera-gallery" hidden><h3>本次三机位素材</h3><div class="camera-grid"><figure><img alt="机位一主体视角" loading="lazy"><figcaption>机位一 · 主体</figcaption></figure><figure><img alt="机位二反打或细节视角" loading="lazy"><figcaption>机位二 · 反打／细节</figcaption></figure><figure><img alt="机位三主全景" loading="lazy"><figcaption>机位三 · 主全景</figcaption></figure></div><a id="word-subtitles" class="secondary-button">下载逐词字幕 ↓</a></section>
+          <div class="preview-footnote"><span>✦</span><p>准备共享三机位，逐句安排表演，按最终配音对齐字幕。音色从“我的音色”中复用。<br><strong>人物、商品细节与口型仍需检查。</strong></p></div>
+        </section>
+      </div>
+      <section id="history" class="history"><div class="history-heading"><h2>最近的作品</h2><span id="job-count">0 个任务</span></div><div id="history-list"><p class="history-empty">你的复刻作品会保存在这里。</p></div></section>
+      <footer><span>aiVideo / Make it yours.</span><span>视频复刻工作台 · 本地预览版</span></footer>
+    </section>
+    <section id="voice-library-page" class="page voice-library-page" hidden>
+      <div class="page-heading"><div><div class="eyebrow">YOUR VOICE LIBRARY</div><h1>先听满意，再确定声音。</h1><p>声音克隆独立管理。多轮对比，选定后直接用于视频配音。</p></div></div>
+      <p class="library-boundary">当前使用豆包克隆音色与文本配音，语气会重新生成。只换音色、保留原表达的 VC 仍需另行接入和验收。</p>
+      <div class="voice-library-grid">
+        <form id="create-voice-form" class="input-panel">
+          <div class="panel-title"><h2>建立候选音色</h2><span>01 — 本地录音</span></div>
+          <label class="field-label" for="library-name">音色名称</label><input id="library-name" name="name" type="text" maxlength="60" placeholder="例如：我的口播声音" required>
+          <label class="field-label" for="library-sample">目标声音录音</label><input id="library-sample" name="sample" type="file" accept="audio/*,.m4a,.flac" required>
+          <audio id="library-local-preview" controls hidden></audio>
+          <p class="hint">3–30 秒清晰干声，最大 10 MB。此处仅保存到音色库；开始试听时再确认发送给豆包。</p>
+          <button class="primary-button" type="submit">保存录音到音色库</button>
+        </form>
+        <form id="audition-form" class="input-panel">
+          <div class="panel-title"><h2>多轮试听</h2><span>02 — 测试与比较</span></div>
+          <label class="field-label" for="library-profile">候选音色</label><select id="library-profile" required><option value="">先建立候选音色</option></select>
+          <audio id="library-source-preview" controls preload="none" hidden></audio>
+          <label class="field-label" for="audition-text">本轮试听文本</label><textarea id="audition-text" rows="4" minlength="4" maxlength="300" required>你好，这是一段自然口播测试。今天是星期六，价格是九十九元。谢谢你的关注！</textarea>
+          <p class="hint">至少完成两轮有效试听，对比发音、数字、停顿与稳定性后再确定音色。每轮是独立试听候选，只正式启用最后选中的一轮；未正式使用的云端试听可能 7 天后过期。</p>
+          <label class="voice-consent-label"><input id="audition-consent" type="checkbox"><span>我同意将这段录音上传至豆包生成本轮试听，并接受试听文本的合成用量费；此步骤不正式启用音色槽位。</span></label>
+          <button id="audition-button" class="primary-button" type="submit" disabled>生成本轮试听</button>
+          <p class="hint" id="audition-status">先选择候选音色，再勾选本轮上传确认。</p>
+        </form>
+      </div>
+      <p id="library-error" class="error" role="alert" hidden></p>
+      <section class="voice-round-section"><div class="history-heading"><h2>试听记录与最终音色</h2><span id="voice-count">0 个音色</span></div><div id="voice-rounds"><p class="history-empty">保存录音后，从这里开始试听。</p></div></section>
+      <p class="library-boundary">确定音色会调用一次正式合成，可能触发后付费音色槽位费，另有合成用量费。只有勾选费用确认并点击本轮的“确认并正式启用”才会执行。<a href="https://docs.volcengine.com/docs/doubao-voice/billing-instructions?lang=zh" target="_blank" rel="noopener noreferrer">查看豆包计费说明 ↗</a></p>
+    </section>
+  </main>
+</body>
+</html>

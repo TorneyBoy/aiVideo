@@ -1,0 +1,44 @@
+name: aivideo-replica
+services:
+  app:
+    image: aivideo-replica:local
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    restart: unless-stopped
+    env_file:
+      - ../.env.server
+    environment:
+      HYPIT_CHROME_PATH: /usr/bin/chromium-headless-shell
+      NODE_OPTIONS: --max-old-space-size=128 --max-semi-space-size=2
+      AIVIDEO_LOW_MEMORY: "1"
+      AIVIDEO_FFMPEG_THREADS: "1"
+      UV_THREADPOOL_SIZE: "2"
+      MALLOC_ARENA_MAX: "2"
+      OMP_NUM_THREADS: "1"
+      MATERIAL_DIRECTORY: /app/runs/materials
+    ports:
+      - "127.0.0.1:14173:4173"
+    volumes:
+      - ../data:/app/runs
+    shm_size: 64m
+    mem_limit: 576m
+    mem_reservation: 192m
+    memswap_limit: 576m
+    cpus: 0.50
+    cpu_shares: 128
+    oom_score_adj: 500
+    pids_limit: 256
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+    healthcheck:
+      test: ["CMD", "node", "--input-type=module", "-e", "const p=new URL(process.env.APP_PUBLIC_URL || 'http://localhost').pathname.replace(/\\/$/,''); const r=await fetch('http://127.0.0.1:4173'+p+'/api/status',{headers:{Authorization:'Basic '+Buffer.from(process.env.APP_AUTH_USER+':'+process.env.APP_AUTH_PASSWORD).toString('base64')},signal:AbortSignal.timeout(5000)}); if(!r.ok)process.exit(1)"]
+      interval: 30s
+      timeout: 8s
+      start_period: 30s
+      retries: 3

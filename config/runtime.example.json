@@ -1,0 +1,6 @@
+{
+  "engine": "hypit",
+  "production": { "enabled": true },
+  "providers": {},
+  "routes": {}
+}

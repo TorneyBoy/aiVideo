@@ -1,0 +1,14 @@
+{
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "tos:GetObject",
+        "tos:PutObject"
+      ],
+      "Resource": [
+        "trn:tos:::YOUR_BUCKET_NAME/aivideo/*"
+      ]
+    }
+  ]
+}

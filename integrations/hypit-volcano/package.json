@@ -1,0 +1,8 @@
+{
+  "name": "@aivideo/hypit-volcano",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "hypit": { "activation": "./activation.mjs" },
+  "exports": { ".": "./provider.mjs" }
+}

@@ -1,0 +1,10 @@
+{
+  "name": "Hypit",
+  "repository": "https://github.com/hypit-ai/hypit.git",
+  "commit": "6bacce093695ccc2bde5aa5d7de230e9682ffa79",
+  "version": "0.3.2",
+  "source": "vendor/hypit",
+  "launcher": "vendor/hypit/bin/hypit.mjs",
+  "license": "vendor/hypit/LICENSE",
+  "integration": "integrations/hypit-volcano"
+}

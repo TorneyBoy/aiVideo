@@ -1,0 +1,39 @@
+{
+  "name": "aivideo-replica",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Reference-video analysis, reusable shot workflows and pluggable subject generation",
+  "engines": {
+    "node": ">=24.4.0"
+  },
+  "scripts": {
+    "dev": "node src/cli.ts serve",
+    "start": "node src/cli.ts serve",
+    "video": "node src/cli.ts",
+    "config:check": "node src/cli.ts config-check",
+    "materials:cleanup": "node src/cli.ts materials-cleanup",
+    "hypit:setup": "node scripts/setup-hypit.mjs",
+    "cloud:check": "node src/cli.ts cloud-check",
+    "cloud:smoke": "node src/cli.ts cloud-smoke",
+    "demo": "node src/cli.ts demo --out runs/demo",
+    "check": "tsc --noEmit",
+    "test": "node --test test/*.test.ts"
+  },
+  "dependencies": {
+    "@fontsource-variable/noto-sans-sc": "5.3.1",
+    "busboy": "^1.6.0",
+    "ffmpeg-static": "5.3.0",
+    "ffprobe-static": "3.1.0",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@types/busboy": "^1.5.4",
+    "@types/node": "24.13.3",
+    "ssh2": "1.17.0",
+    "typescript": "5.9.3"
+  },
+  "optionalDependencies": {
+    "@volcengine/tos-sdk": "2.9.1"
+  }
+}
